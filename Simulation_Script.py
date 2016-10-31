@@ -25,7 +25,7 @@ import time
 
 
 """
-directory = r"D:\Battery Optimisation Project\Final Simulation"
+directory = r"D:\Battery Optimisation Project\Git Repository\Battery-Optimization-Project"
 #battery data
 
 #Lithium Ion
@@ -64,8 +64,8 @@ newfilename4 = directory + r"\Results\simulationdata4.csv"
 #constants
 startday = 1
 endday = 30
-dt = 0.5#timestep of simulation (hrs)
-Dt =  0.5#dispatch period
+dt = 5.0/60#0.5#timestep of simulation (hrs)
+Dt =  5.0/60#0.5#dispatch period
 n = 6
 bounds = [(-1,1)]*n
 acc = 1.0e-07

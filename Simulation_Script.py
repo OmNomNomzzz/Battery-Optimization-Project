@@ -25,7 +25,7 @@ import time
 
 
 """
-directory = r"D:\Battery Optimisation Project\Final Simulation"
+directory = r"D:\Battery Optimisation Project\Git Repository\Battery-Optimization-Project"
 #battery data
 
 #Lithium Ion

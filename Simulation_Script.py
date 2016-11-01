@@ -65,7 +65,7 @@ startday = 1
 endday = 30
 dt = 5.0/60#0.5#timestep of simulation (hrs)
 Dt =  5.0/60#0.5#dispatch period
-n = 12
+n = 6
 bounds = [(-1,1)]*n
 acc = 1.0e-07
 res = 40#resolution of graphs
@@ -92,8 +92,9 @@ n_dg = 1.0
 dgpmax = 1500000.0#Maximum DG power(W)
 fuelprice = 2.54#S$/Gallon
 #parameters of PV and load
-loadfactor = 0.75#max load/ max dg
+loadfactor = 0.88#max load/ max dg
 pvpenetration = 2.0#max pv/max load
+prediction_error = 0.05
 
 
 
@@ -441,7 +442,51 @@ def simstep3(L,qi):
     Pnet = Pbatt+Pdg-L[0]
     return array([q,Pbatt,Pdg,Pnet,i[0]])
 
-
+def simstep3_random(L,qi):
+    if L[0]<0:
+        i_max = imaxc3(qi)
+        Pminb = simbattp3(qi,i_max)*n_batt3
+        if L[0] <= Pminb:
+            i_f = i_max
+        else:
+            i_f = simbatti3(qi,L[0]/n_batt3)
+        q_f = qi+i_f*Dt
+        Pbatt = simbattp3(qi,i_f)*n_batt3
+        Pdg = 0.0
+        Pnet = Pbatt-L[0]
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    L2 = L * ( 1 + randn(L.size)*prediction_error)
+    con1 = (L2 < dgpmax * n_dg)
+    L2 = (con1 * L2) + ((-con1) * dgpmax*n_dg)
+    initial_guess = simstep3(L2,qi)#array([q_f,Pbatt,Pdg,Pnet,i_f])
+    i_max = imaxc3(qi)
+    Pminb = simbattp3(qi,i_max)*n_batt3
+    if L[0] <= (Pminb + initial_guess[2]):
+        Pbatt = Pminb
+        Pdg = L[0] - Pbatt
+        i_f = i_max
+        q_f = qi + i_f*Dt
+        Pnet = 0.0
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    i_min = -imaxd3(qi)#maximum discharge current
+    Pmaxb = simbattp3(qi,i_min)*n_batt3
+    if L[0] >= (Pmaxb + initial_guess[2]):
+        Pbatt = Pmaxb
+        Pdg = L[0] - Pmaxb
+        i_f = i_min
+        q_f = qi + i_f*Dt
+        Pnet = 0.0
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    if L[0] == L2[0]:
+        return initial_guess
+    else:
+        Pdg = initial_guess[2]
+        Pbatt = L[0] - Pdg
+        i_f = simbatti3(qi,Pbatt/n_batt3)
+        q_f = qi + i_f*Dt
+        Pnet = 0.0
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    
 
 
 def fullsimulation3(netl):
@@ -455,7 +500,7 @@ def fullsimulation3(netl):
     counter = 1#counter
     t0 = time.time()
     for t in xrange(T.size):
-        x = simstep3(netl[t:t+n],battqdata[t])
+        x = simstep3_random(netl[t:t+n],battqdata[t])
         battqdata[t+1] = x[0]
         battpdata[t] = x[1]
         dgpdata[t] = x[2]
@@ -547,6 +592,51 @@ def simstep4(L,qi):
     return array([q,Pbatt,Pdg,Pnet,i[0]])
 
 
+def simstep4_random(L,qi):
+    if L[0]<0:
+        i_max = imaxc3(qi)
+        Pminb = simbattp3(qi,i_max)*n_batt3
+        if L[0] <= Pminb:
+            i_f = i_max
+        else:
+            i_f = simbatti3(qi,L[0]/n_batt3)
+        q_f = qi+i_f*Dt
+        Pbatt = simbattp3(qi,i_f)*n_batt3
+        Pdg = 0.0
+        Pnet = Pbatt-L[0]
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    L2 = L * ( 1 + randn(L.size)*prediction_error)
+    con1 = (L2 < dgpmax * n_dg)
+    L2 = (con1 * L2) + ((-con1) * dgpmax*n_dg)
+    initial_guess = simstep4(L2,qi)#array([q_f,Pbatt,Pdg,Pnet,i_f])
+    i_max = imaxc3(qi)
+    Pminb = simbattp3(qi,i_max)*n_batt3
+    if L[0] <= (Pminb + initial_guess[2]):
+        Pbatt = Pminb
+        Pdg = L[0] - Pbatt
+        i_f = i_max
+        q_f = qi + i_f*Dt
+        Pnet = 0.0
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    i_min = -imaxd3(qi)#maximum discharge current
+    Pmaxb = simbattp3(qi,i_min)*n_batt3
+    if L[0] >= (Pmaxb + initial_guess[2]):
+        Pbatt = Pmaxb
+        Pdg = L[0] - Pmaxb
+        i_f = i_min
+        q_f = qi + i_f*Dt
+        Pnet = 0.0
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+    if L[0] == L2[0]:
+        return initial_guess
+    else:
+        Pdg = initial_guess[2]
+        Pbatt = L[0] - Pdg
+        i_f = simbatti3(qi,Pbatt/n_batt3)
+        q_f = qi + i_f*Dt
+        Pnet = 0.0
+        return array([q_f,Pbatt,Pdg,Pnet,i_f])
+
 
 
 def fullsimulation4(netl):
@@ -560,7 +650,7 @@ def fullsimulation4(netl):
     counter = 1#counter
     t0 = time.time()
     for t in xrange(T.size):
-        x = simstep4(netl[t:t+n],battqdata[t])
+        x = simstep4_random(netl[t:t+n],battqdata[t])
         battqdata[t+1] = x[0]
         battpdata[t] = x[1]
         dgpdata[t] = x[2]

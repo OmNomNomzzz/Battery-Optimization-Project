@@ -37,7 +37,6 @@ idata3 = -olddata3[:,2]
 qdata3 = olddata3[:,3]
 
 
-netpower = loadtxt(directory +r"\netirradiancedata.csv", skiprows=0, delimiter = ",")
 newfilename = directory + r"\Results"
 newfilename2 = directory + r"\Results\simulationdata2.csv"
 newfilename3 = directory + r"\Results\simulationdata3.csv"
@@ -66,7 +65,7 @@ startday = 1
 endday = 30
 dt = 5.0/60#0.5#timestep of simulation (hrs)
 Dt =  5.0/60#0.5#dispatch period
-n = 6
+n = 12
 bounds = [(-1,1)]*n
 acc = 1.0e-07
 res = 40#resolution of graphs
@@ -277,7 +276,7 @@ def battcost3(qi,P):#operation cost of using n_batt batteies to supply power P f
     q = zeros(Dt/dt + 1)
     q[0] = qi
     for t in xrange(int(Dt/dt)):
-        i[t] = simbatti3(qi,p)
+        i[t] = simbatti3(q[t],p)
         q[t+1] = q[t] + i[t]*dt
     i[-1] = i[-2]
     if (sum(q<0)>0):
@@ -645,7 +644,7 @@ def plotbattdataP3():
 
 #Script to plot Cost data of n_batt1 Aquion Battery
 def plotbattdataC3():
-    mygrid = mgrid[20.0:Qmax3-1.0:res*1j,0:Pmaxd3*n_batt3:res*1j]
+    mygrid = mgrid[7.0:Qmax3-1.0:res*1j,0:Pmaxd3*n_batt3:res*1j]
     qdata1_sim = mygrid[0].flatten()
     pdata1_sim = mygrid[1].flatten()
     cdata1_sim = battcost3_vec(qdata1_sim,pdata1_sim)*1000
@@ -762,7 +761,7 @@ for pv in xrange(1):
     savetxt(finalfilename, pvdaydata, delimiter = ",")
 """
 
-"""
+
 pvdaydatatype = [('day',int),('loadmax',float),('pvmax',float),('loadtotal',float),('pvtotal',float), ('powerdg1',float), ('costdg1',float), ('costbatt1',float), ('costtotal1',float), ('powerdg2',float), ('costdg2',float), ('costbatt2',float), ('costtotal2',float)]
 pvpenetration = 1.6#(pv + 1) * 0.4 + 2.0
 loadfactor = 0.88
@@ -773,7 +772,7 @@ finalpv = append(zeros(34),pvdata)/pvdata.max()*finalload.max()*pvpenetration
 netload = finalload - finalpv
 
 for bp in xrange(1):
-    storageprice3 =(bp+1)*5+5#dollars per kWh choose between 500-2000 for LA
+    storageprice3 =(bp+1)*25+25#dollars per kWh choose between 500-2000 for LA
     battprice3 = storageprice3*capacity3
     lcoe3 = storageprice3/(dexp3*nexp3)/1000.0#$/Wh
     finalfilename = directory + r"\Results"+ r"\batt_"+ str(n_batt3)+ r"\load_" + str(loadfactor) + r"pv_" + str(pvpenetration) + r"\battprice_" + str(storageprice3) + r"\totalsimulationdata.csv"
@@ -787,7 +786,7 @@ for bp in xrange(1):
         #pvratiodata = sum(finalpv[int((d+2)*24/Dt):int((d+3)*24/Dt)])/sum(finalload[int((d+2)*24/Dt):int((d+3)*24/Dt)])
         pvdaydata[d] = (d+2, finalload[int((d+2)*24/Dt):int((d+3)*24/Dt)].max(), finalpv[int((d+2)*24/Dt):int((d+3)*24/Dt)].max(), sum(finalload[int((d+2)*24/Dt):int((d+3)*24/Dt)]), sum(finalpv[int((d+2)*24/Dt):int((d+3)*24/Dt)]), sum(result3[:,2][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result3[:,5][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result3[:,6][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result3[:,7][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result4[:,2][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result4[:,6][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result4[:,7][int((d+1)*24/Dt):int((d+2)*24/Dt)]), sum(result4[:,8][int((d+1)*24/Dt):int((d+2)*24/Dt)]))
     savetxt(finalfilename, pvdaydata, delimiter = ",")
-"""
+
 
 #different min SOC
 """

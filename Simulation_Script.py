@@ -92,7 +92,7 @@ n_dg = 1.0
 dgpmax = 1500000.0#Maximum DG power(W)
 fuelprice = 2.54#S$/Gallon
 #parameters of PV and load
-loadfactor = 0.75#max load/ max dg
+loadfactor = 0.88#max load/ max dg
 pvpenetration = 2.0#max pv/max load
 prediction_error = 0.05
 
@@ -444,10 +444,10 @@ def simstep3(L,qi):
 
 def simstep3_random(L,qi):
     if L[0]<0:
-        i1 = imaxc3(qi)
-        Pmaxb = simbattp3(qi,i1)*n_batt3
-        if L[0] <= Pmaxb:
-            i_f = i1
+        i_max = imaxc3(qi)
+        Pminb = simbattp3(qi,i_max)*n_batt3
+        if L[0] <= Pminb:
+            i_f = i_max
         else:
             i_f = simbatti3(qi,L[0]/n_batt3)
         q_f = qi+i_f*Dt
@@ -456,15 +456,17 @@ def simstep3_random(L,qi):
         Pnet = Pbatt-L[0]
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     L2 = L * ( 1 + randn(L.size)*prediction_error)
+    con1 = (L2 < dgpmax * n_dg)
+    L2 = (con1 * L2) + ((-con1) * dgpmax*n_dg)
     initial_guess = simstep3(L2,qi)#array([q_f,Pbatt,Pdg,Pnet,i_f])
     i_max = imaxc3(qi)
     Pminb = simbattp3(qi,i_max)*n_batt3
     if L[0] <= (Pminb + initial_guess[2]):
         Pbatt = Pminb
-        Pdg = L[0] - Pminb
+        Pdg = L[0] - Pbatt
         i_f = i_max
         q_f = qi + i_f*Dt
-        Pnet = Pbatt + Pdg -L[0]
+        Pnet = 0.0
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     i_min = -imaxd3(qi)#maximum discharge current
     Pmaxb = simbattp3(qi,i_min)*n_batt3
@@ -473,7 +475,7 @@ def simstep3_random(L,qi):
         Pdg = L[0] - Pmaxb
         i_f = i_min
         q_f = qi + i_f*Dt
-        Pnet = Pbatt + Pdg -L[0]
+        Pnet = 0.0
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     if L[0] == L2[0]:
         return initial_guess
@@ -482,7 +484,7 @@ def simstep3_random(L,qi):
         Pbatt = L[0] - Pdg
         i_f = simbatti3(qi,Pbatt/n_batt3)
         q_f = qi + i_f*Dt
-        Pnet = Pbatt + Pdg -L[0]
+        Pnet = 0.0
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     
 
@@ -592,10 +594,10 @@ def simstep4(L,qi):
 
 def simstep4_random(L,qi):
     if L[0]<0:
-        i1 = imaxc3(qi)
-        Pmaxb = simbattp3(qi,i1)*n_batt3
-        if L[0] <= Pmaxb:
-            i_f = i1
+        i_max = imaxc3(qi)
+        Pminb = simbattp3(qi,i_max)*n_batt3
+        if L[0] <= Pminb:
+            i_f = i_max
         else:
             i_f = simbatti3(qi,L[0]/n_batt3)
         q_f = qi+i_f*Dt
@@ -604,15 +606,17 @@ def simstep4_random(L,qi):
         Pnet = Pbatt-L[0]
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     L2 = L * ( 1 + randn(L.size)*prediction_error)
+    con1 = (L2 < dgpmax * n_dg)
+    L2 = (con1 * L2) + ((-con1) * dgpmax*n_dg)
     initial_guess = simstep4(L2,qi)#array([q_f,Pbatt,Pdg,Pnet,i_f])
     i_max = imaxc3(qi)
     Pminb = simbattp3(qi,i_max)*n_batt3
     if L[0] <= (Pminb + initial_guess[2]):
         Pbatt = Pminb
-        Pdg = L[0] - Pminb
+        Pdg = L[0] - Pbatt
         i_f = i_max
         q_f = qi + i_f*Dt
-        Pnet = Pbatt + Pdg -L[0]
+        Pnet = 0.0
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     i_min = -imaxd3(qi)#maximum discharge current
     Pmaxb = simbattp3(qi,i_min)*n_batt3
@@ -621,7 +625,7 @@ def simstep4_random(L,qi):
         Pdg = L[0] - Pmaxb
         i_f = i_min
         q_f = qi + i_f*Dt
-        Pnet = Pbatt + Pdg -L[0]
+        Pnet = 0.0
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
     if L[0] == L2[0]:
         return initial_guess
@@ -630,7 +634,7 @@ def simstep4_random(L,qi):
         Pbatt = L[0] - Pdg
         i_f = simbatti3(qi,Pbatt/n_batt3)
         q_f = qi + i_f*Dt
-        Pnet = Pbatt + Pdg -L[0]
+        Pnet = 0.0
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
 
 

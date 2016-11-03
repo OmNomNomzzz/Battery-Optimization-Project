@@ -442,7 +442,7 @@ def simstep3(L,qi):
     Pnet = Pbatt+Pdg-L[0]
     return array([q,Pbatt,Pdg,Pnet,i[0]])
 
-def simstep3_random(L,qi):
+def simstep3_random(L,PV,qi):
     if L[0]<0:
         i_max = imaxc3(qi)
         Pminb = simbattp3(qi,i_max)*n_batt3
@@ -455,7 +455,7 @@ def simstep3_random(L,qi):
         Pdg = 0.0
         Pnet = Pbatt-L[0]
         return array([q_f,Pbatt,Pdg,Pnet,i_f])
-    L2 = L * ( 1 + randn(L.size)*prediction_error)
+    L2 = L - append(0,PV[1:])*randn(L.size) * prediction_error
     con1 = (L2 < dgpmax * n_dg)
     L2 = (con1 * L2) + ((-con1) * dgpmax*n_dg)
     initial_guess = simstep3(L2,qi)#array([q_f,Pbatt,Pdg,Pnet,i_f])
@@ -489,7 +489,7 @@ def simstep3_random(L,qi):
     
 
 
-def fullsimulation3(netl):
+def fullsimulation3(netl,finalpv):
     T = arange(netl.size-n)
     battqdata = zeros(T.size+1)
     battqdata[0] = (Qmax3-Qmin3)*0.0+Qmin3#rand()
@@ -500,7 +500,7 @@ def fullsimulation3(netl):
     counter = 1#counter
     t0 = time.time()
     for t in xrange(T.size):
-        x = simstep3_random(netl[t:t+n],battqdata[t])
+        x = simstep3_random(netl[t:t+n],finalpv[t:t+n],battqdata[t])
         battqdata[t+1] = x[0]
         battpdata[t] = x[1]
         dgpdata[t] = x[2]
@@ -868,7 +868,7 @@ for bp in xrange(1):
     finalfilename = directory + r"\Results"+ r"\batt_"+ str(n_batt3)+ r"\load_" + str(loadfactor) + r"pv_" + str(pvpenetration) + r"\battprice_" + str(storageprice3) + r"\totalsimulationdata.csv"
     newfilename3 = directory + r"\Results"+ r"\batt_"+ str(n_batt3)+ r"\load_" + str(loadfactor) + r"pv_" + str(pvpenetration) + r"\battprice_" + str(storageprice3) + r"\simulationdata3.csv"
     newfilename4 = directory + r"\Results"+ r"\batt_"+ str(n_batt3)+ r"\load_" + str(loadfactor) + r"pv_" + str(pvpenetration) + r"\battprice_" + str(storageprice3) + r"\simulationdata4.csv"
-    result3 = fullsimulation3(netload[int(startday*24/Dt):int(endday*24/Dt)+n].copy()).T#Simulate Lead Acid battery from startday to endday
+    result3 = fullsimulation3(netload[int(startday*24/Dt):int(endday*24/Dt)+n].copy(),finalpv[int(startday*24/Dt):int(endday*24/Dt)+n].copy()).T#Simulate Lead Acid battery from startday to endday
     result4 = fullsimulation4(netload[int(startday*24/Dt):int(endday*24/Dt)+n].copy()).T#Simulate Lead Acid battery from startday to endday
     pvdaydata = array([(0,0,0,0,0,0,0,0,0,0,0,0,0)]*28,dtype = pvdaydatatype)
     for d in xrange(28):

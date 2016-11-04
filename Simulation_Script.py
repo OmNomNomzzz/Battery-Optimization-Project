@@ -102,32 +102,35 @@ prediction_error = 0.05
 """
 #Normalize Data
 """
-
-filenamel = directory + r"\BaseSelectedAverage30min.csv"
+starttime = time.time()
+#filenamel = directory + r"\BaseSelectedAverage30min.csv"
+filenamel = directory + r"\loaddata.csv"
 oldloaddata = loadtxt(filenamel,skiprows = 0, delimiter = ",")
-oldloaddata = oldloaddata[0:1488]
-if Dt>0.5:
-    loaddata = zeros(int(31*24/Dt))
+if Dt>1.0:
+    loaddata = zeros(int(31*24/Dt))#31 days * 24 hours a day
     for x in xrange(loaddata.size):
-        loaddata[x] = sum(oldloaddata[int(Dt/0.5)*x:int(Dt/0.5)*(x+1)])/int(Dt/0.5)
-elif Dt == 0.5:
+        loaddata[x] = sum(oldloaddata[int(Dt)*x:int(Dt)*(x+1)])/int(Dt)
+elif Dt == 1.0:
     loaddata = oldloaddata
 else:
     loaddata = zeros(int(31*24/Dt))
     for x in xrange(loaddata.size):
-        loaddata[x] = oldloaddata[int(Dt/0.5*x)]
+        loaddata[x] = oldloaddata[int(Dt*x)]
+del(x)
 
-
-filenamepv = directory + r"\PVData.csv"
-oldpvdata = loadtxt(filenamepv,skiprows = 1, delimiter = ",")
-pvdata = zeros(int(31*24/Dt))
+#filenamepv = directory + r"\PVData.csv"
+filenamepv = directory + r"\Irradiance.csv"
+#oldpvdata = loadtxt(filenamepv,skiprows = 1, delimiter = ",")
+oldpvdata = loadtxt(filenamepv,skiprows = 2, delimiter = ",",usecols = [5])
+pvdata = zeros(int(31*24/Dt))#31 days * 24 hours a day
 if Dt>1.0/60.0:
     for x in xrange(pvdata.size):
         pvdata[x] = sum(oldpvdata[int(Dt*60)*x:int(Dt*60)*(x+1)])/int(Dt*60)
-
+del(x)
 
 netload = loaddata/loaddata.max()*dgpmax*loadfactor - pvdata/pvdata.max()*dgpmax*loadfactor*pvpenetration
-
+endtime = time.time()
+print "time taken = ", (endtime - starttime)
 
 
 
